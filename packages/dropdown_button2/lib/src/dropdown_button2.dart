@@ -894,6 +894,8 @@ class DropdownButtonFormField2<T> extends FormField<T> {
     Widget? customButton,
     bool openWithLongPress = false,
     bool barrierDismissible = true,
+    this.autoUpdateFieldValue = true,
+
     Color? barrierColor,
     String? barrierLabel,
   })  : assert(
@@ -999,6 +1001,9 @@ class DropdownButtonFormField2<T> extends FormField<T> {
   /// {@macro flutter.material.dropdownButton.onChanged}
   final ValueChanged<T?>? onChanged;
 
+  ///Whether super.didChange should be called when onChanged is called, true by default
+  final bool autoUpdateFieldValue;
+
   /// The decoration to show around the dropdown button form field.
   ///
   /// By default, draws a horizontal line under the dropdown button field but
@@ -1026,7 +1031,10 @@ class DropdownButtonFormField2<T> extends FormField<T> {
 class _DropdownButtonFormFieldState<T> extends FormFieldState<T> {
   @override
   void didChange(T? value) {
-    super.didChange(value);
+
+    if(widget.autoUpdateFieldValue){
+      super.didChange(value);
+    }      
     final DropdownButtonFormField2<T> dropdownButtonFormField =
         widget as DropdownButtonFormField2<T>;
     assert(dropdownButtonFormField.onChanged != null);
