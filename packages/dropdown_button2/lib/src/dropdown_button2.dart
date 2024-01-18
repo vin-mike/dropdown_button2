@@ -1025,14 +1025,22 @@ class DropdownButtonFormField2<T> extends FormField<T> {
   }
 
   @override
-  FormFieldState<T> createState() => _DropdownButtonFormFieldState<T>();
+  FormFieldState<T> createState() => _DropdownButtonFormFieldState<T>(
+      autoUpdateFieldValue
+  );
 }
 
 class _DropdownButtonFormFieldState<T> extends FormFieldState<T> {
+
+  ///Whether super.didChange should be called when onChanged is called, true by default
+  final bool autoUpdateFieldValue;
+
+  _DropdownButtonFormFieldState([this.autoUpdateFieldValue=true]);
+
   @override
   void didChange(T? value) {
 
-    if(widget.autoUpdateFieldValue){
+    if(autoUpdateFieldValue){
       super.didChange(value);
     }      
     final DropdownButtonFormField2<T> dropdownButtonFormField =
