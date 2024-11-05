@@ -100,9 +100,6 @@ class _DropdownMenuItemContainer extends StatelessWidget {
   /// If set to true, then this item's height will vary according to its
   /// intrinsic height instead of using [height] property.
   ///
-  /// It is highly recommended to keep this value as false when dealing with
-  /// a significantly large items list in order to optimize performance.
-  ///
   /// Note: If set to true and there isn't enough vertical room for the menu, there's
   /// no way to know the item's intrinsic height in-advance to properly scroll to
   /// the selected item. Instead, the provided [height] value will be used, which means
@@ -150,6 +147,7 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
     switch (FocusManager.instance.highlightMode) {
       case FocusHighlightMode.touch:
         inTraditionalMode = false;
+        // TODO(Ahmed): Remove decorative breaks and add lint to it [flutter>=v3.10.0].
         break;
       case FocusHighlightMode.traditional:
         inTraditionalMode = true;
@@ -175,7 +173,6 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
     final DropdownItem<T> dropdownItem = widget.route.items[widget.itemIndex];
 
     dropdownItem.onTap?.call();
-    widget.route.onChanged?.call(dropdownItem.value);
 
     if (dropdownItem.closeOnTap) {
       Navigator.pop(
@@ -186,13 +183,13 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
   }
 
   static const Map<ShortcutActivator, Intent> _webShortcuts =
-      <ShortcutActivator, Intent>{
+  <ShortcutActivator, Intent>{
     // On the web, up/down don't change focus, *except* in a <select>
     // element, which is what a dropdown emulates.
     SingleActivator(LogicalKeyboardKey.arrowDown):
-        DirectionalFocusIntent(TraversalDirection.down),
+    DirectionalFocusIntent(TraversalDirection.down),
     SingleActivator(LogicalKeyboardKey.arrowUp):
-        DirectionalFocusIntent(TraversalDirection.up),
+    DirectionalFocusIntent(TraversalDirection.up),
   };
 
   MenuItemStyleData get menuItemStyle => widget.route.menuItemStyle;
@@ -204,8 +201,8 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
     final DropdownItem<T> dropdownItem = widget.route.items[widget.itemIndex];
     final double unit = 0.5 / (widget.route.items.length + 1.5);
     final double start =
-        clampDouble(menuCurveEnd + (widget.itemIndex + 1) * unit, 0.0, 1.0);
-    final double end = clampDouble(start + 1.5 * unit, 0.0, 1.0);
+    _clampDouble(menuCurveEnd + (widget.itemIndex + 1) * unit, 0.0, 1.0);
+    final double end = _clampDouble(start + 1.5 * unit, 0.0, 1.0);
     final CurvedAnimation opacity = CurvedAnimation(
         parent: widget.route.animation!, curve: Interval(start, end));
 
@@ -228,7 +225,7 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
         overlayColor: menuItemStyle.overlayColor,
         child: isSelectedItem
             ? menuItemStyle.selectedMenuItemBuilder?.call(context, child) ??
-                child
+            child
             : child,
       );
     }
