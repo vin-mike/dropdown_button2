@@ -530,7 +530,7 @@ class DropdownButton2State<T> extends State<DropdownButton2<T>>
       menuItemStyle: _menuItemStyle,
       searchData: _searchData,
       dropdownSeparator: separator,
-      barrierCoversButton: false,
+      barrierCoversButton: true,
     );
 
     _isMenuOpen.value = true;
