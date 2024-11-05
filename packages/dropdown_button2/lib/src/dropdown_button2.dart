@@ -681,14 +681,16 @@ class DropdownButton2State<T> extends State<DropdownButton2<T>>
         ? _kAlignedButtonPadding
         : _kUnalignedButtonPadding;
 
+
     final buttonHeight =
         _buttonStyle?.height ?? (widget.isDense ? _denseButtonHeight : null);
-
-    Widget item = buttonItems[_selectedIndex ?? hintIndex ?? 0];
-    if (item is DropdownItem) {
-      item = item.copyWith(alignment: widget.alignment);
+    Widget item=SizedBox();
+    if (buttonItems.isNotEmpty) {
+      item= buttonItems[_selectedIndex ?? hintIndex ?? 0];
+      if (item is DropdownItem) {
+        item = item.copyWith(alignment: widget.alignment);
+      }
     }
-
     // If value is null (then _selectedIndex is null) then we
     // display the hint or nothing at all.
     final Widget innerItemsWidget;
