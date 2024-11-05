@@ -8,6 +8,7 @@ class ButtonStyleData {
     this.width,
     this.padding,
     this.decoration,
+    this.foregroundDecoration,
     this.elevation,
     this.overlayColor,
   });
@@ -23,6 +24,9 @@ class ButtonStyleData {
 
   /// The decoration of the Button
   final BoxDecoration? decoration;
+
+  /// The decoration to paint in front of the Button
+  final BoxDecoration? foregroundDecoration;
 
   /// The elevation of the Button
   final int? elevation;
@@ -130,9 +134,15 @@ class DropdownStyleData {
   final double? width;
 
   /// The inner padding of the dropdown menu
+  ///
+  /// The horizontal padding will be added to the button's padding as well, ensuring that
+  /// the menu width and button width adapt seamlessly to the maximum width of the items.
   final EdgeInsetsGeometry? padding;
 
   /// The inner padding of the dropdown menu including the scrollbar
+  ///
+  /// The horizontal padding will be added to the button's padding as well, ensuring that
+  /// the menu width and button width adapt seamlessly to the maximum width of the items.
   final EdgeInsetsGeometry? scrollPadding;
 
   /// The decoration of the dropdown menu
@@ -185,12 +195,19 @@ class MenuItemStyleData {
   /// Creates a MenuItemStyleData.
   const MenuItemStyleData({
     this.padding,
+    this.borderRadius,
     this.overlayColor,
     this.selectedMenuItemBuilder,
   });
 
-  /// The padding of menu items
+  /// The padding applied to each menu item.
+  ///
+  /// The horizontal padding will be added to the button's padding as well, ensuring that
+  /// the menu width and button width adapt seamlessly to the maximum width of the items.
   final EdgeInsetsGeometry? padding;
+
+  /// The border radius of the menu item.
+  final BorderRadius? borderRadius;
 
   /// Defines the ink response focus, hover, and splash colors.
   ///
@@ -240,14 +257,15 @@ class DropdownSearchData<T> {
   /// Creates a DropdownSearchData.
   const DropdownSearchData({
     this.searchController,
-    this.searchInnerWidget,
-    this.searchInnerWidgetHeight,
+    this.searchBarWidget,
+    this.searchBarWidgetHeight,
+    this.noResultsWidget,
     this.searchMatchFn,
   }) : assert(
-          (searchInnerWidget == null) == (searchInnerWidgetHeight == null),
-          'searchInnerWidgetHeight should not be null when using searchInnerWidget\n'
-          'This is necessary to properly determine menu limits and scroll offset',
-        );
+  (searchBarWidget == null) == (searchBarWidgetHeight == null),
+  'searchBarWidgetHeight should not be null when using searchBarWidget\n'
+      'This is necessary to properly determine menu limits and scroll offset',
+  );
 
   /// The TextEditingController used for searchable dropdowns. If this is null,
   /// then it'll perform as a normal dropdown without searching feature.
@@ -255,10 +273,13 @@ class DropdownSearchData<T> {
 
   /// The widget to use for searchable dropdowns, such as search bar.
   /// It will be shown at the top of the dropdown menu.
-  final Widget? searchInnerWidget;
+  final Widget? searchBarWidget;
 
-  /// The height of the searchInnerWidget if used.
-  final double? searchInnerWidgetHeight;
+  /// The height of the searchBarWidget if used.
+  final double? searchBarWidgetHeight;
+
+  /// The widget to show when the search results are empty.
+  final Widget? noResultsWidget;
 
   /// The match function used for searchable dropdowns. If this is null,
   /// then _defaultSearchMatchFn will be used.

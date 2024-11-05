@@ -9,18 +9,21 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
     required this.capturedThemes,
     required this.style,
     required this.barrierDismissible,
-    this.barrierColor,
+    Color? barrierColor,
     this.barrierLabel,
+    required this.barrierCoversButton,
     required this.parentFocusNode,
     required this.enableFeedback,
     required this.dropdownStyle,
     required this.menuItemStyle,
     required this.searchData,
     this.dropdownSeparator,
-  }) : itemHeights = addSeparatorsHeights(
-          itemHeights: items.map((item) => item.height).toList(),
-          separatorHeight: dropdownSeparator?.height,
-        );
+  })  : itemHeights = addSeparatorsHeights(
+    itemHeights: items.map((item) => item.height).toList(),
+    separatorHeight: dropdownSeparator?.height,
+  ),
+        barrierColor = barrierCoversButton ? barrierColor : null,
+        _altBarrierColor = barrierColor;
 
   final List<DropdownItem<T>> items;
   final ValueNotifier<Rect?> buttonRect;
@@ -47,14 +50,18 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
   @override
   final Color? barrierColor;
 
+  /// This is used by [_CustomModalBarrier].
+  final Color? _altBarrierColor;
+
   @override
   final String? barrierLabel;
+
+  final bool barrierCoversButton;
 
   final FocusScopeNode _childNode = FocusScopeNode(debugLabel: 'Child');
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation) {
+  Widget buildPage(BuildContext context, _, __) {
     return FocusScope.withExternalFocusNode(
       focusScopeNode: _childNode,
       parentNode: parentFocusNode,
@@ -68,11 +75,11 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
           final BoxConstraints actualConstraints = constraints.copyWith(
               maxHeight: constraints.maxHeight - mediaQuery.viewInsets.bottom);
           final EdgeInsets mediaQueryPadding =
-              dropdownStyle.useSafeArea ? mediaQuery.padding : EdgeInsets.zero;
+          dropdownStyle.useSafeArea ? mediaQuery.padding : EdgeInsets.zero;
           return ValueListenableBuilder<Rect?>(
             valueListenable: buttonRect,
             builder: (BuildContext context, Rect? rect, _) {
-              return _DropdownRoutePage<T>(
+              final routePage = _DropdownRoutePage<T>(
                 route: this,
                 constraints: actualConstraints,
                 mediaQueryPadding: mediaQueryPadding,
@@ -81,6 +88,15 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
                 capturedThemes: capturedThemes,
                 style: style,
                 enableFeedback: enableFeedback,
+              );
+              return barrierCoversButton
+                  ? routePage
+                  : _CustomModalBarrier(
+                animation: animation,
+                barrierColor: _altBarrierColor,
+                barrierCurve: barrierCurve,
+                buttonRect: rect,
+                child: routePage,
               );
             },
           );
@@ -104,8 +120,8 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
 
     if (items.isNotEmpty && index > 0) {
       assert(
-        items.length + (dropdownSeparator != null ? items.length - 1 : 0) ==
-            itemHeights.length,
+      items.length + (dropdownSeparator != null ? items.length - 1 : 0) ==
+          itemHeights.length,
       );
       offset += itemHeights
           .sublist(0, index)
@@ -118,13 +134,13 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
   // Returns the vertical extent of the menu and the initial scrollOffset
   // for the ListView that contains the menu items.
   _MenuLimits getMenuLimits(
-    Rect buttonRect,
-    double availableHeight,
-    EdgeInsets mediaQueryPadding,
-    int index,
-  ) {
+      Rect buttonRect,
+      double availableHeight,
+      EdgeInsets mediaQueryPadding,
+      int index,
+      ) {
     double maxHeight =
-        getMenuAvailableHeight(availableHeight, mediaQueryPadding);
+    getMenuAvailableHeight(availableHeight, mediaQueryPadding);
     // If a preferred MaxHeight is set by the user, use it instead of the available maxHeight.
     final double? preferredMaxHeight = dropdownStyle.maxHeight;
     if (preferredMaxHeight != null) {
@@ -133,7 +149,7 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
 
     double actualMenuHeight =
         dropdownStyle.padding?.vertical ?? kMaterialListPadding.vertical;
-    final double innerWidgetHeight = searchData?.searchInnerWidgetHeight ?? 0.0;
+    final double innerWidgetHeight = searchData?.searchBarWidgetHeight ?? 0.0;
     actualMenuHeight += innerWidgetHeight;
     if (items.isNotEmpty) {
       actualMenuHeight +=
@@ -197,9 +213,9 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
   // with which to dismiss the menu.
   //   -- https://material.io/design/components/menus.html#usage
   double getMenuAvailableHeight(
-    double availableHeight,
-    EdgeInsets mediaQueryPadding,
-  ) {
+      double availableHeight,
+      EdgeInsets mediaQueryPadding,
+      ) {
     return math.max(
       0.0,
       availableHeight - mediaQueryPadding.vertical - _kMenuItemHeight,
@@ -306,7 +322,7 @@ class _DropdownMenuRouteLayout<T> extends SingleChildLayoutDelegate {
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
     final double? itemWidth = route.dropdownStyle.width;
     double maxHeight =
-        route.getMenuAvailableHeight(availableHeight, mediaQueryPadding);
+    route.getMenuAvailableHeight(availableHeight, mediaQueryPadding);
     final double? preferredMaxHeight = route.dropdownStyle.maxHeight;
     if (preferredMaxHeight != null && preferredMaxHeight <= maxHeight) {
       maxHeight = preferredMaxHeight;
@@ -314,7 +330,7 @@ class _DropdownMenuRouteLayout<T> extends SingleChildLayoutDelegate {
     // The width of a menu should be at most the view width. This ensures that
     // the menu does not extend past the left and right edges of the screen.
     final double width =
-        math.min(constraints.maxWidth, itemWidth ?? buttonRect.width);
+    math.min(constraints.maxWidth, itemWidth ?? buttonRect.width);
     return BoxConstraints(
       minWidth: width,
       maxWidth: width,
@@ -380,6 +396,13 @@ class _DropdownMenuRouteLayout<T> extends SingleChildLayoutDelegate {
           size.width - childSize.width,
         );
         break;
+      case DropdownDirection.center:
+        left = _clampDouble(
+          (size.width - childSize.width) / 2 + offset.dx,
+          0.0,
+          size.width - childSize.width,
+        );
+        break;
     }
 
     return Offset(left, menuLimits.top);
@@ -408,4 +431,93 @@ class _DropdownRouteResult<T> {
 
   @override
   int get hashCode => result.hashCode;
+}
+
+/// This barrier doesn't cover the dropdown button.
+/// It's used instead of the route barrier when `barrierCoversButton` is set to false.
+class _CustomModalBarrier extends StatefulWidget {
+  const _CustomModalBarrier({
+    this.animation,
+    this.barrierColor,
+    required this.barrierCurve,
+    required this.child,
+    this.buttonRect,
+  });
+
+  final Animation<double>? animation;
+  final Color? barrierColor;
+  final Curve barrierCurve;
+  final Widget child;
+  final Rect? buttonRect;
+
+  @override
+  State<_CustomModalBarrier> createState() => _CustomModalBarrierState();
+}
+
+class _CustomModalBarrierState extends State<_CustomModalBarrier> {
+  late final Animation<Color?> color;
+
+  @override
+  void initState() {
+    super.initState();
+    color = widget.animation!.drive(
+      ColorTween(
+        begin: widget.barrierColor!.withOpacity(0.0),
+        end: widget.barrierColor,
+      ).chain(CurveTween(curve: widget.barrierCurve)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+
+    return Stack(
+      children: [
+        ValueListenableBuilder(
+          valueListenable: color,
+          builder: (BuildContext context, Color? value, Widget? child) {
+            return CustomPaint(
+              painter: _DropdownBarrierPainter(
+                buttonRect: widget.buttonRect,
+                barrierColor: value,
+                pageSize: size,
+              ),
+            );
+          },
+        ),
+        widget.child,
+      ],
+    );
+  }
+}
+
+class _DropdownBarrierPainter extends CustomPainter {
+  const _DropdownBarrierPainter({
+    this.buttonRect,
+    this.barrierColor,
+    required this.pageSize,
+  });
+
+  final Rect? buttonRect;
+  final Color? barrierColor;
+  final Size pageSize;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (barrierColor != null && buttonRect != null) {
+      final Rect rect = Rect.fromLTRB(
+          -buttonRect!.left, -buttonRect!.top, pageSize.width, pageSize.height);
+      canvas.saveLayer(rect, Paint());
+      canvas.drawRect(rect, Paint()..color = barrierColor!);
+      canvas.drawRect(buttonRect!, Paint()..blendMode = BlendMode.clear);
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DropdownBarrierPainter oldPainter) {
+    return oldPainter.buttonRect != buttonRect ||
+        oldPainter.barrierColor != barrierColor;
+  }
 }

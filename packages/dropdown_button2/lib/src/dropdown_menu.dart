@@ -1,7 +1,7 @@
 part of 'dropdown_button2.dart';
 
 SearchMatchFn<T> _defaultSearchMatchFn<T>() =>
-    (DropdownItem<T> item, String searchValue) =>
+        (DropdownItem<T> item, String searchValue) =>
         item.value.toString().toLowerCase().contains(searchValue.toLowerCase());
 
 class _MenuLimits {
@@ -139,7 +139,7 @@ class _DropdownMenuState<T> extends State<_DropdownMenu<T>> {
     // in the first 0.25s.
     assert(debugCheckHasMaterialLocalizations(context));
     final MaterialLocalizations localizations =
-        MaterialLocalizations.of(context);
+    MaterialLocalizations.of(context);
     final _DropdownRoute<T> route = widget.route;
 
     return FadeTransition(
@@ -164,7 +164,7 @@ class _DropdownMenuState<T> extends State<_DropdownMenu<T>> {
                 ? Clip.antiAlias
                 : Clip.none,
             borderRadius: dropdownStyle.decoration?.borderRadius
-                    ?.resolve(Directionality.of(context)) ??
+                ?.resolve(Directionality.of(context)) ??
                 BorderRadius.zero,
             child: Material(
               type: MaterialType.transparency,
@@ -172,57 +172,64 @@ class _DropdownMenuState<T> extends State<_DropdownMenu<T>> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  if (searchData?.searchInnerWidget != null)
-                    searchData!.searchInnerWidget!,
-                  Flexible(
-                    child: Padding(
-                      padding: dropdownStyle.scrollPadding ?? EdgeInsets.zero,
-                      child: ScrollConfiguration(
-                        // Dropdown menus should never overscroll or display an overscroll indicator.
-                        // Scrollbars are built-in below.
-                        // Platform must use Theme and ScrollPhysics must be Clamping.
-                        behavior: ScrollConfiguration.of(context).copyWith(
-                          scrollbars: false,
-                          overscroll: false,
-                          physics: const ClampingScrollPhysics(),
-                          platform: Theme.of(context).platform,
-                        ),
-                        child: PrimaryScrollController(
-                          controller: route.scrollController!,
-                          child: Theme(
-                            data: Theme.of(context).copyWith(
-                              scrollbarTheme: dropdownStyle.scrollbarTheme,
-                            ),
-                            child: Scrollbar(
-                              // ignore: avoid_bool_literals_in_conditional_expressions
-                              thumbVisibility:
-                                  _isIOS ? _iOSThumbVisibility : true,
-                              thickness: _isIOS
-                                  ? _scrollbarTheme?.thickness?.resolve(_states)
-                                  : null,
-                              radius: _isIOS ? _scrollbarTheme?.radius : null,
-                              child: ListView.separated(
-                                // Ensure this always inherits the PrimaryScrollController
-                                primary: true,
-                                shrinkWrap: true,
-                                padding: dropdownStyle.padding ??
-                                    kMaterialListPadding,
-                                itemCount: _children.length,
-                                itemBuilder: (context, index) =>
-                                    _children[index],
-                                separatorBuilder: (context, index) =>
-                                    separator != null
-                                        ? SizedBox(
-                                            height: separator!.height,
-                                            child: separator)
-                                        : const SizedBox.shrink(),
+                  if (searchData?.searchBarWidget != null)
+                    searchData!.searchBarWidget!,
+                  if (_children.isEmpty && searchData?.noResultsWidget != null)
+                    searchData!.noResultsWidget!
+                  else
+                    Flexible(
+                      child: Padding(
+                        padding: dropdownStyle.scrollPadding ?? EdgeInsets.zero,
+                        child: ScrollConfiguration(
+                          // Dropdown menus should never overscroll or display an overscroll indicator.
+                          // Scrollbars are built-in below.
+                          // Platform must use Theme and ScrollPhysics must be Clamping.
+                          behavior: ScrollConfiguration.of(context).copyWith(
+                            scrollbars: false,
+                            overscroll: false,
+                            physics: const ClampingScrollPhysics(),
+                            platform: Theme.of(context).platform,
+                          ),
+                          child: PrimaryScrollController(
+                            controller: route.scrollController!,
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                scrollbarTheme: dropdownStyle.scrollbarTheme,
+                              ),
+                              child: Scrollbar(
+                                thumbVisibility:
+                                // ignore: avoid_bool_literals_in_conditional_expressions
+                                _isIOS ? _iOSThumbVisibility : true,
+                                thickness: _isIOS
+                                    ? _scrollbarTheme?.thickness
+                                    ?.resolve(_states)
+                                    : null,
+                                radius: _isIOS ? _scrollbarTheme?.radius : null,
+                                child: ListView.separated(
+                                  // Ensure this always inherits the PrimaryScrollController
+                                  primary: true,
+                                  shrinkWrap: true,
+                                  padding: dropdownStyle.padding ??
+                                      kMaterialListPadding,
+                                  itemCount: _children.length,
+                                  itemBuilder: (context, index) =>
+                                  _children[index],
+                                  separatorBuilder: (context, index) =>
+                                  separator != null
+                                      ? SizedBox(
+                                    height: separator!.intrinsicHeight
+                                        ? null
+                                        : separator!.height,
+                                    child: separator,
+                                  )
+                                      : const SizedBox.shrink(),
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -242,20 +249,20 @@ class _DropdownMenuPainter extends CustomPainter {
     required this.itemHeight,
     this.dropdownDecoration,
   })  : _painter = dropdownDecoration
-                ?.copyWith(
-                  color: dropdownDecoration.color ?? color,
-                  boxShadow: dropdownDecoration.boxShadow ??
-                      kElevationToShadow[elevation],
-                )
-                .createBoxPainter(() {}) ??
-            BoxDecoration(
-              // If you add an image here, you must provide a real
-              // configuration in the paint() function and you must provide some sort
-              // of onChanged callback here.
-              color: color,
-              borderRadius: const BorderRadius.all(Radius.circular(2.0)),
-              boxShadow: kElevationToShadow[elevation],
-            ).createBoxPainter(),
+      ?.copyWith(
+    color: dropdownDecoration.color ?? color,
+    boxShadow: dropdownDecoration.boxShadow ??
+        kElevationToShadow[elevation],
+  )
+      .createBoxPainter(() {}) ??
+      BoxDecoration(
+        // If you add an image here, you must provide a real
+        // configuration in the paint() function and you must provide some sort
+        // of onChanged callback here.
+        color: color,
+        borderRadius: const BorderRadius.all(Radius.circular(2.0)),
+        boxShadow: kElevationToShadow[elevation],
+      ).createBoxPainter(),
         super(repaint: resize);
 
   final Color? color;

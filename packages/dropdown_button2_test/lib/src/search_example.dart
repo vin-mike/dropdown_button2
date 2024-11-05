@@ -20,7 +20,7 @@ class _SearchExampleState extends State<SearchExample> {
     'B_Item4',
   ];
 
-  String? selectedValue;
+  final valueListenable = ValueNotifier<String?>(null);
   final TextEditingController textEditingController = TextEditingController();
 
   @override
@@ -55,11 +55,9 @@ class _SearchExampleState extends State<SearchExample> {
                       ),
                     ))
                 .toList(),
-            value: selectedValue,
+            valueListenable: valueListenable,
             onChanged: (value) {
-              setState(() {
-                selectedValue = value;
-              });
+              valueListenable.value = value;
             },
             buttonStyleData: const ButtonStyleData(
               padding: EdgeInsets.symmetric(horizontal: 16),
@@ -71,8 +69,8 @@ class _SearchExampleState extends State<SearchExample> {
             ),
             dropdownSearchData: DropdownSearchData(
               searchController: textEditingController,
-              searchInnerWidgetHeight: 50,
-              searchInnerWidget: Container(
+              searchBarWidgetHeight: 50,
+              searchBarWidget: Container(
                 height: 50,
                 padding: const EdgeInsets.only(
                   top: 8,
@@ -97,6 +95,10 @@ class _SearchExampleState extends State<SearchExample> {
                     ),
                   ),
                 ),
+              ),
+              noResultsWidget: const Padding(
+                padding: EdgeInsets.all(8),
+                child: Text('No Item Found!'),
               ),
               searchMatchFn: (item, searchValue) {
                 return item.value.toString().contains(searchValue);

@@ -4,28 +4,116 @@ part of 'dropdown_button2.dart';
 ///
 /// The type `T` is the type of the value the entry represents. All the entries
 /// in a given menu must represent values with consistent types.
-class DropdownItem<T> extends DropdownMenuItem<T> {
+class DropdownItem<T> extends _DropdownMenuItemContainer {
   /// Creates a dropdown item.
   ///
   /// The [child] property must be set.
   const DropdownItem({
     required super.child,
-    this.height = _kMenuItemHeight,
-    super.onTap,
-    super.value,
-    super.enabled,
+    super.height,
+    super.intrinsicHeight,
     super.alignment,
+    this.onTap,
+    this.value,
+    this.enabled = true,
     this.closeOnTap = true,
     super.key,
   });
 
-  /// The height of the menu item, default value is [kMinInteractiveDimension]
-  final double height;
+  /// Called when the dropdown menu item is tapped.
+  final VoidCallback? onTap;
+
+  /// The value to return if the user selects this menu item.
+  ///
+  /// Eventually returned in a call to [DropdownButton.onChanged].
+  final T? value;
+
+  /// Whether or not a user can select this menu item.
+  ///
+  /// Defaults to `true`.
+  final bool enabled;
 
   /// Whether the dropdown should close when the item is tapped.
   ///
   /// Defaults to true.
   final bool closeOnTap;
+
+  /// Creates a copy of this DropdownItem but with the given fields replaced with the new values.
+  DropdownItem<T> copyWith({
+    Widget? child,
+    double? height,
+    bool? intrinsicHeight,
+    void Function()? onTap,
+    T? value,
+    bool? enabled,
+    AlignmentGeometry? alignment,
+    bool? closeOnTap,
+  }) {
+    return DropdownItem<T>(
+      height: height ?? this.height,
+      intrinsicHeight: intrinsicHeight ?? this.intrinsicHeight,
+      onTap: onTap ?? this.onTap,
+      value: value ?? this.value,
+      enabled: enabled ?? this.enabled,
+      alignment: alignment ?? this.alignment,
+      closeOnTap: closeOnTap ?? this.closeOnTap,
+      child: child ?? this.child,
+    );
+  }
+}
+
+// The container widget for a menu item created by a [DropdownButton2]. It
+// provides the default configuration for [DropdownMenuItem]s, as well as a
+// [DropdownButton]'s hint and disabledHint widgets.
+class _DropdownMenuItemContainer extends StatelessWidget {
+  /// Creates an item for a dropdown menu.
+  ///
+  /// The [child] argument is required.
+  const _DropdownMenuItemContainer({
+    super.key,
+    this.alignment = AlignmentDirectional.centerStart,
+    required this.child,
+    this.height = _kMenuItemHeight,
+    this.intrinsicHeight = false,
+  });
+
+  /// The widget below this widget in the tree.
+  ///
+  /// Typically a [Text] widget.
+  final Widget child;
+
+  /// Defines how the item is positioned within the container.
+  ///
+  /// Defaults to [AlignmentDirectional.centerStart].
+  ///
+  /// See also:
+  ///
+  ///  * [Alignment], a class with convenient constants typically used to
+  ///    specify an [AlignmentGeometry].
+  ///  * [AlignmentDirectional], like [Alignment] for specifying alignments
+  ///    relative to text direction.
+  final AlignmentGeometry alignment;
+
+  /// The height of the menu item, default value is [kMinInteractiveDimension]
+  final double height;
+
+  /// If set to true, then this item's height will vary according to its
+  /// intrinsic height instead of using [height] property.
+  ///
+  /// Note: If set to true and there isn't enough vertical room for the menu, there's
+  /// no way to know the item's intrinsic height in-advance to properly scroll to
+  /// the selected item. Instead, the provided [height] value will be used, which means
+  /// the menu's initial scroll offset may not properly scroll to the selected item.
+  final bool intrinsicHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: intrinsicHeight ? null : height,
+      alignment: alignment,
+      child: child,
+    );
+  }
 }
 
 // The widget that is the button wrapping the menu items.
@@ -95,13 +183,13 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
   }
 
   static const Map<ShortcutActivator, Intent> _webShortcuts =
-      <ShortcutActivator, Intent>{
+  <ShortcutActivator, Intent>{
     // On the web, up/down don't change focus, *except* in a <select>
     // element, which is what a dropdown emulates.
     SingleActivator(LogicalKeyboardKey.arrowDown):
-        DirectionalFocusIntent(TraversalDirection.down),
+    DirectionalFocusIntent(TraversalDirection.down),
     SingleActivator(LogicalKeyboardKey.arrowUp):
-        DirectionalFocusIntent(TraversalDirection.up),
+    DirectionalFocusIntent(TraversalDirection.up),
   };
 
   MenuItemStyleData get menuItemStyle => widget.route.menuItemStyle;
@@ -113,7 +201,7 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
     final DropdownItem<T> dropdownItem = widget.route.items[widget.itemIndex];
     final double unit = 0.5 / (widget.route.items.length + 1.5);
     final double start =
-        _clampDouble(menuCurveEnd + (widget.itemIndex + 1) * unit, 0.0, 1.0);
+    _clampDouble(menuCurveEnd + (widget.itemIndex + 1) * unit, 0.0, 1.0);
     final double end = _clampDouble(start + 1.5 * unit, 0.0, 1.0);
     final CurvedAnimation opacity = CurvedAnimation(
         parent: widget.route.animation!, curve: Interval(start, end));
@@ -121,8 +209,7 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
     Widget child = Container(
       padding: (menuItemStyle.padding ?? _kMenuItemPadding)
           .resolve(widget.textDirection),
-      height: dropdownItem.height,
-      child: widget.route.items[widget.itemIndex],
+      child: dropdownItem,
     );
     // An [InkWell] is added to the item only if it is enabled
     // isNoSelectedItem to avoid first item highlight when no item selected
@@ -134,10 +221,11 @@ class _DropdownItemButtonState<T> extends State<_DropdownItemButton<T>> {
         enableFeedback: widget.enableFeedback,
         onTap: _handleOnTap,
         onFocusChange: _handleFocusChange,
+        borderRadius: menuItemStyle.borderRadius,
         overlayColor: menuItemStyle.overlayColor,
         child: isSelectedItem
             ? menuItemStyle.selectedMenuItemBuilder?.call(context, child) ??
-                child
+            child
             : child,
       );
     }
