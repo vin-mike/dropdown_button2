@@ -689,6 +689,7 @@ class DropdownButton2State<T> extends State<DropdownButton2<T>>
               _buttonStyle?.width == null && _dropdownStyle.width == null
                   ? _getMenuHorizontalPadding()
                   : 0.0,
+
         ),
         child: IndexedStack(
           index: _selectedIndex ?? hintIndex,
