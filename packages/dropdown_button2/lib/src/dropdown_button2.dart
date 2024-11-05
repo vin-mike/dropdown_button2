@@ -690,7 +690,6 @@ class DropdownButton2State<T> extends State<DropdownButton2<T>>
               _buttonStyle?.width == null && _dropdownStyle.width == null
                   ? _getMenuHorizontalPadding()
                   : 0.0,
-
         ),
         child: IndexedStack(
           index: _selectedIndex ?? hintIndex,
@@ -913,6 +912,7 @@ class DropdownButtonFormField2<T> extends FormField<T> {
     DropdownSeparator<T>? dropdownSeparator,
     Widget? customButton,
     bool openWithLongPress = false,
+    this.autoUpdateFieldValue = true,
     bool barrierDismissible = true,
     Color? barrierColor,
     String? barrierLabel,
@@ -1036,14 +1036,20 @@ class DropdownButtonFormField2<T> extends FormField<T> {
         );
   }
 
+  final bool autoUpdateFieldValue;
   @override
-  FormFieldState<T> createState() => _DropdownButtonFormFieldState<T>();
+  FormFieldState<T> createState() =>
+      _DropdownButtonFormFieldState<T>(autoUpdateFieldValue);
 }
 
 class _DropdownButtonFormFieldState<T> extends FormFieldState<T> {
+  final bool autoUpdateFieldValue;
+  _DropdownButtonFormFieldState([this.autoUpdateFieldValue = true]);
   @override
   void didChange(T? value) {
-    super.didChange(value);
+    if (autoUpdateFieldValue) {
+      super.didChange(value);
+    }
     final DropdownButtonFormField2<T> dropdownButtonFormField =
         widget as DropdownButtonFormField2<T>;
     assert(dropdownButtonFormField.onChanged != null);
