@@ -677,6 +677,7 @@ class DropdownButton2State<T> extends State<DropdownButton2<T>>
       ));
     }
 
+
     final EdgeInsetsGeometry padding = ButtonTheme.of(context).alignedDropdown
         ? _kAlignedButtonPadding
         : _kUnalignedButtonPadding;
